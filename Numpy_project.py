@@ -1,123 +1,122 @@
+import csv
 import numpy as np
-#1
-days=np.array(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'])
-month=np.array(['November','December','January','Februrary'])
-data=np.array([8,21,9,22,14,28,10,20,11,23,10,27,12,26,
-10,29,11,22,7,29,-13,24,14,31,7,31,13,24,
-7,28,10,32,13,30,8,24,9,25,8,32,14,25,
-12,29,8,22,12,21,13,31,13,31,11,28,12,22,
-13,25,12,28,6,30,13,28,11,22,6,28,15,30,
-11,29,8,30,10,25,6,20,9,25,10,29,6,30,
-14,27,6,30,14,28,14,32,15,28,9,31,9,25,
-8,20,11,25,7,28,6,29,14,21,8,32,15,31,
-2,20,5,21,8,21,3,20,7,21,3,4,21,6,
-2,20,5,21,3,18,3,22,7,21,6,2,20,4,
-6,19,8,19,8,22,2,18,2,22,5,8,18,3,
-2,21,4,21,3,20,6,22,3,20,7,3,18,2,
-8,18,8,22,-10,22,11,19,11,20,12,71,18,9,
-10,22,10,19,9,22,12,19,11,20,7,9,20,12,
-12,18,12,20,7,21,9,21,11,18,12,8,20,11,
-11,19,12,20,7,20,10,19,12,18,10,7,19,7
-]).reshape(4,4,7,2)
-#2
-print(data.ndim,"\n",data.shape,'\n\n')
-#3
-print(data[:,0],'\n\n')
-#4
-print(data[:,:,1],'\n\n')
-#5
-print(data[[1,3],:,:,1],'\n\n')
+data=[]
+with open(r"C:\Users\Lokesh\Downloads\MER_T07_02A-2020-02-03.csv",'r') as csvfile:
+    file_read=csv.reader(csvfile,delimiter=',')
+    for row in file_read:
+        data.append(row)
 
-#6
-inx=data[0]<8
-print(data[0,inx],'\n\n')
+data=np.array(data)#convert the list to array
 
-#7
-inx=data[1,2]>20
-print(data[1,2][inx],'\n\n')
+##
+dimension=print(data.ndim,data.shape,data.dtype)
 
-#8
-outlier=np.concatenate((data[data>40],data[data<0]))
-print(outlier,'\n\n')
+##
+print(data[:10,3])
 
-#9
+##
+print(data[0])
 
-#10
-inx_plus=np.where(data>40)
-inx_minus=np.where(data<0)
-print(inx_plus,inx_minus,'\n\n')
+##
+print(data[1:20,[1,2]])
 
-#11
-data[inx_plus]-=30
-data[inx_minus]+=15
+##
+print(data[:3],data[-3:])
 
-#12
-max=data[:,:,:,1]
-avg=np.average(max)
-print(avg,'\n\n')
+##
+sort=data[data[:,2].argsort()]
+print(sort)
 
-#13
-min=data[1,:,:,0]
-avg=np.average(min)
-print(avg,'\n\n')
+##
+alldata=data[1:,:]
+r_rows=(alldata[:,1]>='194901') & (alldata[:,1]<'199013')
+r_source=(alldata[:,0]=='CLETPUS') | (alldata[:,0]=='NUETPUS')
 
-#14
-temp=data[[1,2]]
-avg=np.average(temp)
-print(avg,'\n\n')
+r_sources= r_rows & r_source
+electricity=alldata[r_sources,2].astype(float)
+total_electricity=np.sum(electricity)
+print("total electricity",total_electricity)
 
-#15
-temp=np.min(data[[1,2]])
-inx=np.where(data[[1,2]]==temp)
-print(temp)
-for i in range(0,7):
-    print(days[inx[2][i]],' week ',inx[1][i]+1,' ', month[inx[0][i]])
-print('\n\n')
+##
+unique_sources = np.unique(data[1:, 0])
+for source in unique_sources:
+    print(source)
 
-#16
-temp=np.max(data[3])
-inx=np.where(data[3]==temp)
-print(temp)
-print(days[inx[0]],'week',inx[1]+1, month[inx[2]],'\n\n')
+##
+mask = data[1:, 0] == 'WYETPUS'
+wind_energy_data = data[1:][mask]
+for row in wind_energy_data:
+    print(row)
 
-#17
-avg=np.average(data[0])
-days_max=data[0,:,:,1]<avg
-inx=np.where(days_max==True)
-print(days[[inx[1]]],'\n\n')
+##
 
-#18
-data1=data.reshape(4,56).copy()
-print(data1,'\n\n')
+mask = data[1:, 4] == 'Electricity Net Generation Total (including from sources not shown), All Sectors'
+usa_total_energy_data = data[1:][mask]
+total_energy_generated = np.sum(usa_total_energy_data[:, 2].astype(float))
+print("Total energy generated in the USA till date:", total_energy_generated)
 
-#19
-data_f=(data1*(9/5))+32
-print(data_f,'\n\n')
+##
+wind_energy_mask = data[1:, 0] == 'WYETPUS'
+wind_energy_data = data[1:][wind_energy_mask]
+valid_wind_energy_data = wind_energy_data[wind_energy_data[:, 2] != 'Not Available']
+wind_energy_values = valid_wind_energy_data[:, 2].astype(float)
+average_wind_energy = np.mean(wind_energy_values)
+std_dev_wind_energy = np.std(wind_energy_values)
+print("Average annual energy generated from wind in the USA:", average_wind_energy)
 
-#20
-Dec_sort=np.sort(data_f[1])[::-1]
-print(Dec_sort,'\n\n')
+##
+valid_rows = data[1:][data[1:, 2] != 'Not Available']
+years = valid_rows[:, 1].astype(int) // 100
+values = valid_rows[:, 2].astype(float)
+max_energy_index = np.argmax(values)
+max_energy_year = years[max_energy_index]
+max_energy_value = values[max_energy_index]
 
-#21
-t_sort=np.sort(data_f[:,[0,1,2,14,15,16,28,29,30,42,43,44]],axis=0)[::-1]
-print(t_sort,'\n\n')
+print("Maximum annual energy generated:", max_energy_value, "Million Kilowatthours")
+print("Year when the maximum annual energy was generated:", max_energy_year)
 
-#22
-diff_day=np.array([data[:,:,:,1]-data[:,:,:,0]])
-print(diff_day,'\n\n')
+##
+years = data[1:, 1].astype(int) // 100
+values = data[1:, 2]
 
-#23
-maxdiff_days=np.zeros((4,4,6))
-for i in range(0,6):
-    maxdiff_days[:,:,i]=data[:,:,i+1,1]-data[:,:,i,1]
-print(maxdiff_days,'\n\n')
+values[values == 'Not Available'] = np.nan
+values = values.astype(float)
 
-#24
-mindiff_days=np.zeros((4,4,6))
-for i in range(0,6):
-    mindiff_days[:,:,i]=data[:,:,i+1,0]-data[:,:,i,0]
-print(mindiff_days,'\n\n')
+wind_energy_mask = data[1:, 0] == 'WYETPUS'
+wind_years = years[wind_energy_mask]
+wind_values = values[wind_energy_mask]
 
-#25
-difference=np.concatenate((maxdiff_days,mindiff_days))
-print(difference,'\n\n')
+avg_wind_energy = np.nanmean(wind_values)
+
+max_source_index = np.nanargmax(values)
+max_source = data[max_source_index + 1, 0]
+
+print("Average wind energy production:", avg_wind_energy, "Million Kilowatthours")
+print("Source with the largest annual electricity production:", max_source)
+
+##
+sources = data[1:, 0]
+values = data[1:, 2].astype(float)
+
+wind_mask = sources == 'WYETPUS'
+solar_mask = sources == 'SOTEPUS'
+
+wind_energy = np.sum(values[wind_mask])
+solar_energy = np.sum(values[solar_mask])
+
+total_energy = np.sum(values)
+
+combined_energy = wind_energy + solar_energy
+
+wind_contribution = (wind_energy / total_energy) * 100
+solar_contribution = (solar_energy / total_energy) * 100
+combined_contribution = (combined_energy / total_energy) * 100
+
+print("Wind Energy Contribution:", wind_contribution, "%")
+print("Solar Energy Contribution:", solar_contribution, "%")
+print("Combined Wind and Solar Contribution:", combined_contribution, "%")
+
+if wind_contribution > combined_contribution:
+    print("The national grid is shifting toward wind energy.")
+else:
+    print("The national grid is not fundamentally shifting toward wind energy.")
